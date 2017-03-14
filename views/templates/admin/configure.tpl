@@ -1,0 +1,1 @@
+Hola desde el admin del módulo!
