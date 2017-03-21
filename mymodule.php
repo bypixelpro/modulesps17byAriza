@@ -26,9 +26,9 @@ class mymodule extends Module implements WidgetInterface {
       
         parent::__construct(); 
 
-        $this->displayName = $this->trans('Mi primer módulo', array(), 'Module.mymodule');
-        $this->description = $this->trans('Módulo desde cero con el equipo de Pixelpro.', array(), 'Module.mymodule');
-        $this->ps_versions_compliancy = array('min' => '1.7.0.0', 'max' => _PS_VERSION_);    
+        $this->displayName = $this->trans('Mi primer módulo', array(), 'Modules.mymodule.Admin');
+        $this->description = $this->trans('Módulo desde cero con el equipo de Pixelpro.', array(), 'Admin.Global');
+        $this->ps_versions_compliancy = array('min' => '1.7.0.0', 'max' => _PS_VERSION_); 
         
         $this->createControls();
         
@@ -44,30 +44,6 @@ class mymodule extends Module implements WidgetInterface {
             $this->registerHook('displayHome') && 
             $this->registerHook('displayLeftColumn');
     }
-    
-    /**
-     * Controls
-     */
-    protected function createControls() {
-        
-        $this->controls['MYMODULE_SAVE_NAME'] = array(
-            'controlName' => 'MYMODULE_SAVE_NAME',
-            'values' => null,
-            'label' => $this->l('Name'),
-            'desc' => $this->l('Enter your Name')
-        );        
-        $this->controls['MYMODULE_SAVE_LAST_NAME'] = array(
-            'controlName' => 'MYMODULE_SAVE_LAST_NAME',
-            'values' => null,
-            'label' => $this->l('Last Name'),
-            'desc' => $this->l('Enter your Last Name')
-        );
-        // Button Save
-        $this->button['MYMODULE_SAVE_FORM'] = array(
-            'controlName' => 'MYMODULE_SAVE_FORM',
-            'label' => $this->l('Save'),
-        );
-    }
 
     public function uninstall() {
         Configuration::deleteByName('MYMODULE_LIVE_MODE');        
@@ -79,24 +55,20 @@ class mymodule extends Module implements WidgetInterface {
         if((bool) Tools::isSubmit('submitMymodule')) {
             $this->postProcess();
         }
-          /**
-         * Custom Save
-         */
+        
         if((bool) Tools::isSubmit($this->button['MYMODULE_SAVE_FORM']['controlName'])) {
-            $this->customPostProcess();
+	    $this->customPostProcess();
         }
         
-        foreach($this->controls as $control) {
-            $this->controls[$control['controlName']]['values'] = $this->getLangValues($control['controlName']);
-        }
+        $this->getCustomValues();
         
         $this->context->smarty->assign($this->name, array(
             'path' => $this->_path,
             'languagesArray' => $this->context->controller->getLanguages(),
-            'currentLang' => $this->context->language->id,
-            'customControls' => $this->controls,
-            'saveButton' => $this->button,
-            'postAction' => $this->context->link->getAdminLink('AdminModules', false).'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name .'&token='.Tools::getAdminTokenLite('AdminModules') 
+	    'currentLang' => $this->context->language->id,
+	    'customControls' => $this->controls,
+	    'saveButton' => $this->button,
+	    'postAction' => $this->context->link->getAdminLink('AdminModules', false).'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name .'&token='.Tools::getAdminTokenLite('AdminModules')
         ));
         
         $customTpl = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
@@ -105,21 +77,13 @@ class mymodule extends Module implements WidgetInterface {
         return $autoGenerateTpl . $customTpl;
     }
     
-     /**
-     * Get Values
-     * @param type $_controlName
-     * @return type array
-     */
-    public function getLangValues($_controlName) {
-        $languages = $this->context->controller->getLanguages();
-        $values = array();
-        foreach($languages as $lang) {
-            $composeName = $_controlName . '_' . $lang["id_lang"];
-            $values[$lang["id_lang"]] = Configuration::get($composeName);
+    protected function getCustomValues() {
+        foreach($this->controls as $control) {
+	    $this->controls[$control['controlName']]['values'] = $this->getLangValues($control['controlName']);
         }
-        return $values;
     }
-    
+
+
     protected function getConfigForm() {
         return array(
             'form' => array(
@@ -169,12 +133,13 @@ class mymodule extends Module implements WidgetInterface {
         );
     }
     
-    protected function getConfigFormValues () {
+    protected function getConfigFormValues () {        
         $languages = Language::getLanguages(false);
         $custom_text = array();        
         foreach ($languages as $lang) {
             $custom_text[$lang['id_lang']] = Tools::getValue('MYMODULE_ACCOUNT_EMAIL_'.$lang['id_lang'], Configuration::get('MYMODULE_ACCOUNT_EMAIL', $lang['id_lang']));
         }
+       
         return array(
             'MYMODULE_LIVE_MODE' => Tools::getValue('MYMODULE_LIVE_MODE', Configuration::get('MYMODULE_LIVE_MODE')),
             'MYMODULE_ACCOUNT_EMAIL' => $custom_text,
@@ -207,23 +172,67 @@ class mymodule extends Module implements WidgetInterface {
     }
     
     protected function postProcess() {
-        $formValues = $this->getConfigFormValues();        
-        foreach(array_keys($formValues) as $key) {
-            Configuration::updateValue($key, Tools::getValue($key));
+        $formValues = $this->getConfigFormValues();  
+        foreach($formValues as $key => $val) {
+            Configuration::updateValue($key, $val);
         }
     }
     
     /**
-     * Save Custom Fields
-     */
+    * Controls
+    */
+    protected function createControls() {
+        $this->controls['MYMODULE_SAVE_NAME'] = array(
+            'controlName' => 'MYMODULE_SAVE_NAME',
+            'values' => null,
+            'label' => $this->l('Name'),
+            'desc' => $this->l('Enter your Name')
+        );        
+        $this->controls['MYMODULE_SAVE_LAST_NAME'] = array(
+            'controlName' => 'MYMODULE_SAVE_LAST_NAME',
+            'values' => null,
+            'label' => $this->l('Last Name'),
+            'desc' => $this->l('Enter your Last Name')
+        );
+        $this->controls['MYMODULE_HTML'] = array(
+            'controlName' => 'MYMODULE_HTML',
+            'values' => null,
+            'label' => $this->l('HTML'),
+            'desc' => $this->l('Escribe tu html personalizado')
+        );
+         // Button Save
+        $this->button['MYMODULE_SAVE_FORM'] = array(
+            'controlName' => 'MYMODULE_SAVE_FORM',
+            'label' => $this->l('Save'),
+        );
+    }
+    
+    /**
+    * Save Custom Fields
+    */
     protected function customPostProcess() {    
-        $languages = $this->context->controller->getLanguages();
+        $languages = Language::getLanguages(false);
         foreach($this->controls as $control) {
             foreach($languages as $lang) {
                 $composeName = $control['controlName'] . '_' . $lang["id_lang"];
-                Configuration::updateValue($composeName, Tools::getValue($composeName));
+                Configuration::updateValue($composeName, Tools::getValue($composeName), true);
             }
         }
+    }
+    
+    /**
+    * Get Values
+    * @param type $_controlName
+    * @return type array
+    */
+    public function getLangValues($_controlName) {
+        $languages = Language::getLanguages(false);
+        $values = array();
+        foreach($languages as $lang) {
+            $composeName = $_controlName . '_' . $lang["id_lang"];
+            $values[$lang["id_lang"]] = Configuration::get($composeName);
+        }
+        return $values;
     }
     
     public function hookHeader() {
@@ -231,7 +240,7 @@ class mymodule extends Module implements WidgetInterface {
     }
     
     public function hookFooter() {
-        
+       
     }
     
     public function hookBackOfficeHeader() {
@@ -241,11 +250,32 @@ class mymodule extends Module implements WidgetInterface {
     }
     
     public function hookDisplayHome() {
-         $this->context->smarty->assign($this->name, array(
-            'path' => $this->_path
-        ));
         
+        $this->getCustomValues(); 
+        
+        $this->context->smarty->assign($this->name, array(
+            'path' => $this->_path,
+            'html' => $this->controls['MYMODULE_HTML'],
+            'currentLanguage' => $this->context->language->id
+        ));        
         return $this->context->smarty->fetch($this->local_path.'views/templates/hook/displayHome.tpl');
+    }
+    
+    public function cleanCategoriesData($_array) {
+        $cleanArray = array();
+        foreach($_array as $key => $catVal) {
+            if(is_array($catVal)) {
+                foreach($catVal as $category) {
+                    $cleanArray[$key] = array(
+                        'id_category' => $category['infos']['id_category'],
+                        'name' => $category['infos']['name'],
+                        'link_rewrite' => $category['infos']['link_rewrite'],
+                    );
+                }
+            }
+        }
+        unset($cleanArray[0]);
+        return $cleanArray;
     }
     
     public function hookDisplayLeftColumn() {
