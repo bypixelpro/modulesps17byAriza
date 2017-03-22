@@ -30,6 +30,7 @@ class mymodule extends Module implements WidgetInterface {
         $this->description = $this->trans('Módulo desde cero con el equipo de Pixelpro.', array(), 'Admin.Global');
         $this->ps_versions_compliancy = array('min' => '1.7.0.0', 'max' => _PS_VERSION_); 
         
+        $this->getDependencies();
         $this->createControls();
         
     }
@@ -48,6 +49,10 @@ class mymodule extends Module implements WidgetInterface {
     public function uninstall() {
         Configuration::deleteByName('MYMODULE_LIVE_MODE');        
         return parent::uninstall();
+    }
+    
+    private function getDependencies() {
+        require_once 'classes/getProductByCatId.php';
     }
     
     public function getContent() {
@@ -250,13 +255,17 @@ class mymodule extends Module implements WidgetInterface {
     }
     
     public function hookDisplayHome() {
-        
         $this->getCustomValues(); 
-        
+        $categoriesArray = $this->cleanCategoriesData(Category::getCategories());
+        $getProduct = new getProductByCatId((int)$categoriesArray[1]['id_category'], 1);
+
         $this->context->smarty->assign($this->name, array(
             'path' => $this->_path,
             'html' => $this->controls['MYMODULE_HTML'],
-            'currentLanguage' => $this->context->language->id
+            'currentLanguage' => $this->context->language->id,
+            'comboCategories' => $categoriesArray,
+            'getProductByCategoryId' => $getProduct->productCategory, 
+            'currency' => Context::getContext()->cookie
         ));        
         return $this->context->smarty->fetch($this->local_path.'views/templates/hook/displayHome.tpl');
     }
