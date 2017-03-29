@@ -1,6 +1,5 @@
 jQuery(document).ready(function() {
-    console.log('Hola Dani');
-    comboOnChange();
+    comboChange();
 });
 
 function properties() {
@@ -17,7 +16,7 @@ function properties() {
 
 var allProperties = properties();
 
-function comboOnChange() {
+function comboChange() {
     jQuery(document).on('change', allProperties.selectors.combo, function() {
         var getVal = jQuery(this).val();
         getProductByAjax(getVal);

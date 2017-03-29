@@ -53,6 +53,10 @@ class mymodule extends Module implements WidgetInterface {
     
     private function getDependencies() {
         require_once 'classes/getProductByCatId.php';
+        require_once 'models/ipModel.php';
+        require_once 'controllers/saveIp.php';
+        require_once 'classes/mail.php';
+        require_once 'classes/cron.php';
     }
     
     public function getContent() {
@@ -242,6 +246,23 @@ class mymodule extends Module implements WidgetInterface {
     
     public function hookHeader() {
        $this->context->controller->registerJavascript('modules-mymodule', 'modules/'.$this->name.'/views/js/myModuleFront.js', ['position' => 'bottom', 'priority' => 150]);
+       $saveIpEntities = new saveIpEntities();
+       $saveIpEntities->ip = $this->checkLocalhot(Tools::getRemoteAddr()); 
+       $saveIpEntities->browser = Tools::getUserBrowser();
+       $saveIp = new saveIp($saveIpEntities);
+       $saveIp->saveIp();
+    }
+    
+    private function checkLocalhot($_ip) {
+        $ip = null;
+         switch ($_ip) {
+            case '::1':
+                $ip = Tools::getServerName();
+                break;
+            default :
+                $ip = $_ip;
+        }
+        return $ip;
     }
     
     public function hookFooter() {
