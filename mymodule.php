@@ -31,8 +31,7 @@ class mymodule extends Module implements WidgetInterface {
         $this->ps_versions_compliancy = array('min' => '1.7.0.0', 'max' => _PS_VERSION_); 
         
         $this->getDependencies();
-        $this->createControls();
-        
+        $this->createControls();        
     }
     
     public function install() {
@@ -57,6 +56,7 @@ class mymodule extends Module implements WidgetInterface {
         require_once 'controllers/saveIp.php';
         require_once 'classes/mail.php';
         require_once 'classes/cron.php';
+        require_once 'classes/dbTest.php';
     }
     
     public function getContent() {
@@ -244,7 +244,23 @@ class mymodule extends Module implements WidgetInterface {
         return $values;
     }
     
+    private function test() {
+        echo '<h1>Bases de datos</h1>';
+        
+       $testDb = new dbTest();
+       //$testDb->select();
+       //$testDb->insert();
+       //$testDb->update();
+       //$testDb->delete();
+       //$testDb->sanitize();
+       $testDb->sprintF();
+       exit();
+    }
+    
     public function hookHeader() {
+       
+        $this->test();
+        
        $this->context->controller->registerJavascript('modules-mymodule', 'modules/'.$this->name.'/views/js/myModuleFront.js', ['position' => 'bottom', 'priority' => 150]);
        $saveIpEntities = new saveIpEntities();
        $saveIpEntities->ip = $this->checkLocalhot(Tools::getRemoteAddr()); 
