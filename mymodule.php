@@ -55,7 +55,7 @@ class mymodule extends Module implements WidgetInterface {
         require_once 'models/ipModel.php';
         require_once 'controllers/saveIp.php';
         require_once 'classes/mail.php';
-        require_once 'classes/cron.php';
+        require_once 'classes/cronMail.php';
         require_once 'classes/dbTest.php';
     }
     
@@ -253,14 +253,20 @@ class mymodule extends Module implements WidgetInterface {
        //$testDb->update();
        //$testDb->delete();
        //$testDb->sanitize();
-       $testDb->sprintF();
+       //$testDb->sprintF();
+      
+       $saveIp = saveIp::getCronSelect();       
+       $mailEntities = new mailCronEntities();
+       $mailEntities->subject = 'Usuarios registrados';
+       $mailEntities->queryResult = $saveIp;
+       $sendMail = new mailCron($mailEntities);
+       $mail = $sendMail->sendEmail();       
+       var_dump($mail);
+       
        exit();
     }
     
-    public function hookHeader() {
-       
-        $this->test();
-        
+    public function hookHeader() {        
        $this->context->controller->registerJavascript('modules-mymodule', 'modules/'.$this->name.'/views/js/myModuleFront.js', ['position' => 'bottom', 'priority' => 150]);
        $saveIpEntities = new saveIpEntities();
        $saveIpEntities->ip = $this->checkLocalhot(Tools::getRemoteAddr()); 

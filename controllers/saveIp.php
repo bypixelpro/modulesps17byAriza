@@ -35,6 +35,10 @@ class saveIp extends ipModel  {
         return $output;
     }
     
+    public static function getCronSelect($_date) {
+        return self::cronSelect($_date);
+    }
+    
     private function getDate() {
        return date("Y-m-d 00:00:00");
     }

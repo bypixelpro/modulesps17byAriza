@@ -47,8 +47,12 @@ class ipModel extends Module {
         Db::getInstance()->Execute($sql);
     }
     
-    protected function cron() {
-        $sql = 'SELECT * FROM ps_save_ip;';
-        return Db::getInstance()->Execute($sql);
+    protected function cronSelect($_date) {
+        $date = filter_var($_date, FILTER_SANITIZE_STRING);
+        $sql = 'SELECT %s, %s, %s, %s '
+                . 'FROM '._DB_PREFIX_. ipEntitiesNames::NAME_TABLE
+                . ' WHERE ' . ipEntitiesNames::DATE . ' = "%s";';
+        $sql = sprintf($sql, ipEntitiesNames::IP, ipEntitiesNames::DATE, ipEntitiesNames::NUM_VISITS, ipEntitiesNames::BROWSER, $date);
+        return Db::getInstance()->ExecuteS($sql);
     }
 }
